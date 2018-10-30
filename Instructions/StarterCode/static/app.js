@@ -1,6 +1,28 @@
+function buildMetadata(samples) {
+
+    // @TODO: Complete the following function that builds the metadata panel
+    // Use d3 to select the panel with id of `#sample-metadata`
+     var metadata = d3.select("#sample-metadata")
+    // Use `d3.json` to fetch the metadata for a sample
+      // var url ="/metadata/<sample>"
+      d3.json(`/metadata/${samples}`).then(successHandle).catch(errorHandle)
+      function successHandle(result){
+        var metadata = d3.select("#sample-metadata")
+        console.log(`the result is`,result)
+        // Use `.html("") to clear any existing metadata
+        metadata.html("")
+        for( var key in result){
+          metadata.append("h6").text(key + ":" + result[key])
+        }
+      }
+      function errorHandle(error){
+        console.log(`error is :`,error)
+      }    
+      // BONUS: Build the Gauge Chart
+      // buildGauge(data.WFREQ);
+  }  
+
 function buildCharts(samples){
-    
-    
     d3.json(`/samples/${samples}`).then((data) => {
         console.log(data);
         

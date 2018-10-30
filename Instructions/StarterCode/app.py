@@ -54,7 +54,7 @@ def names():
     df.set_index('otu_id', inplace=True)
 
     # Return a list of the column names (sample names)
-    return jsonify(list(df.columns))
+    return jsonify(list(df.columns)[2:])
 
 #################################################
 # Returns a list of OTU descriptions 
@@ -72,14 +72,18 @@ def otu():
 @app.route('/metadata/<sample>')
 def sample_metadata(sample):
     """Return the MetaData for a given sample."""
-    sel = [Samples_Metadata.SAMPLEID, Samples_Metadata.ETHNICITY,
-           Samples_Metadata.GENDER, Samples_Metadata.AGE,
-           Samples_Metadata.LOCATION, Samples_Metadata.BBTYPE]
+    sel = [
+        Samples_Metadata.SAMPLEID, 
+        Samples_Metadata.ETHNICITY,
+        Samples_Metadata.GENDER, 
+        Samples_Metadata.AGE,
+        Samples_Metadata.LOCATION, 
+        Samples_Metadata.BBTYPE
+        ]
 
     # sample[3:] strips the `BB_` prefix from the sample name to match
     # the numeric value of `SAMPLEID` from the database
-    results = session.query(*sel).\
-        filter(Samples_Metadata.SAMPLEID == sample[3:]).all()
+    results = session.query(*sel).filter(Samples_Metadata.SAMPLEID == sample[3:]).all()
 
     # Create a dictionary entry for each row of metadata information
     sample_metadata = {}
@@ -91,27 +95,13 @@ def sample_metadata(sample):
         sample_metadata['LOCATION'] = result[4]
         sample_metadata['BBTYPE'] = result[5]
 
+    print(sample_metadata)
     return jsonify(sample_metadata)
 
-#################################################
-# Returns an integer value for the weekly washing frequency `WFREQ`
-@app.route('/wfreq/<sample>')
-def sample_wfreq(sample):
-    """Return the Weekly Washing Frequency as a number."""
 
-    # `sample[3:]` strips the `BB_` prefix
-    results = session.query(Samples_Metadata.WFREQ).\
-        filter(Samples_Metadata.SAMPLEID == sample[3:]).all()
-    wfreq = np.ravel(results)
-
-    # Return only the first integer value for washing frequency
-    return jsonify(int(wfreq[0]))
-
-#################################################
 # Return a list of dictionaries containing sorted lists  for `otu_ids`and `sample_values`
 @app.route('/samples/<sample>')
 def samples(sample):
-    print('in sample route')
     """Return a list dictionaries containing `otu_ids` and `sample_values`."""
     stmt = session.query(Samples).statement
     df = pd.read_sql_query(stmt, session.bind)
